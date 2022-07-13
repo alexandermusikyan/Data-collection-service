@@ -2,6 +2,16 @@
 
 Service for getting and aggregating data about video cameras from several services
 
+## Build
+`mvn clean compile`
+
+## Run
+`mvn spring-boot:run`
+
+## URL for testing 
+
+`http://localhost:8085/www.mocky.io/v2/all_cameras`
+
 ## Setting up parameters
 
 In the `application.properties` file, you can set: 
