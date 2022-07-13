@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/camera")
+@RequestMapping(value = "/www.mocky.io/v2")
 public class CameraController {
     private final CameraService cameraService;
 
