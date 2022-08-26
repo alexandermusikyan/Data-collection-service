@@ -1,51 +1,66 @@
 package netris.demo.service.services;
 
 import lombok.AllArgsConstructor;
-import netris.demo.service.models.CameraDTO;
-import netris.demo.service.models.CameraInformationDTO;
-import netris.demo.service.models.Worker;
+import lombok.SneakyThrows;
+import netris.demo.service.models.*;
 import netris.demo.service.properties.ApplicationProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class CameraService {
 
     private final ApplicationProperties applicationProperties;
-    private final RequestService requestService;
 
-    public List<CameraDTO> getAllCameras() throws InterruptedException {
-        Vector<CameraDTO> result = new Vector<>();
-
-        LinkedList<CameraInformationDTO> cameraInformations =
-                new LinkedList<>(
-                        List.of(
-                                (CameraInformationDTO[]) requestService.getRequest(applicationProperties.getUrl(), CameraInformationDTO[].class)
-                        )
+    @SneakyThrows
+    public List<CameraDTO> getAllCameras() {
+        List<CameraInformationDTO> cameraInfos =
+                List.of(RequestService.getRequest(applicationProperties.getUrl(), CameraInformationDTO[].class)
                 );
 
-        Integer threadCount = applicationProperties.getThreadCount();
-        Thread[] workers = new Worker[threadCount];
+        ExecutorService executorService = Executors.newFixedThreadPool(applicationProperties.getThreadCount());
 
-        while (!cameraInformations.isEmpty()) {
-            for (int i = 0; i < threadCount; ++i) {
-                if (workers[i] == null || !workers[i].isAlive()) {
-                    CameraInformationDTO task = cameraInformations.removeLast();
+        List<Future<CameraDTO>> futures = executorService.invokeAll(
+                cameraInfos
+                        .stream()
+                        .map(CallableTask::new)
+                        .collect(Collectors.toList())
+        );
 
-                    workers[i] = new Worker(task, result, requestService);
-                    workers[i].start();
-                }
+        executorService.shutdown();
+
+        return futures.stream().map(future ->
+        {
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
             }
+        }).collect(Collectors.toList());
+    }
+
+    private static class CallableTask implements Callable<CameraDTO> {
+        private final CameraInformationDTO cameraInf;
+
+        public CallableTask(final CameraInformationDTO cameraInf) {
+            this.cameraInf = cameraInf;
         }
 
-        for (int i = 0; i < threadCount; ++i) {
-            if (workers[i] != null) {
-                workers[i].join();
-            }
-        }
+        @Override
+        public CameraDTO call() {
+            SourceDataUrlDTO sourceDataUrlDTO = RequestService.getRequest(cameraInf.getSourceDataUrl(), SourceDataUrlDTO.class);
+            TokenDataUrlDTO tokenDataUrlDTO = RequestService.getRequest(cameraInf.getTokenDataUrl(), TokenDataUrlDTO.class);
 
-        return result;
+            return new CameraDTO()
+                    .setId(cameraInf.getId())
+                    .setUrlType(sourceDataUrlDTO.getUrlType())
+                    .setVideoUrl(sourceDataUrlDTO.getVideoUrl())
+                    .setValue(tokenDataUrlDTO.getValue())
+                    .setTtl(tokenDataUrlDTO.getTtl());
+        }
     }
 }
