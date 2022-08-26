@@ -7,17 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
 
 @SpringJUnitConfig
 public class CameraServiceTests {
-
-    @Spy
-    @InjectMocks
-    private RequestService requestService = new RequestService();
 
     @Mock
     private ApplicationProperties applicationProperties;
