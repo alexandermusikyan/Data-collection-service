@@ -13,7 +13,7 @@
 	<name>data-collection-service</name>
 	<description>Spring Boot Simple Sample</description>
 	<properties>
-		<org.mapstruct.version>1.5.1.Final</org.mapstruct.version>
+		<org.mapstruct.version>1.5.2.Final</org.mapstruct.version>
 		<version.mapstruct-lombok>0.2.0</version.mapstruct-lombok>
 		<version.junit>4.13.2</version.junit>
 		<java.version>11</java.version>

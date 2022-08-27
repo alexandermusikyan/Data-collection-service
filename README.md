@@ -2,6 +2,9 @@
 
 Service for getting and aggregating data about video cameras from several services
 
+## Task
+see task [here](task.pdf)
+
 ## Build
 `mvn clean compile`
 
